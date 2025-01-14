@@ -17,9 +17,8 @@ export const config = {
   },
 };
 
-if (!dev) {
-  // Production: Export handler for Vercel serverless
-  const server = createServer(async (req, res) => {
+const server = createServer((req, res) => {
+  void (async () => {
     try {
       const parsedUrl = parse(req.url!, true);
       await handle(req, res, parsedUrl);
@@ -28,29 +27,15 @@ if (!dev) {
       res.statusCode = 500;
       res.end("internal server error");
     }
-  });
+  })();
+});
 
-  // Initialize WebSocket server
-  createWebSocketServer(server);
+// Initialize WebSocket server
+createWebSocketServer(server);
 
-  export default server;
-} else {
+if (dev) {
   // Development: Start local server
-  app.prepare().then(() => {
-    const server = createServer(async (req, res) => {
-      try {
-        const parsedUrl = parse(req.url!, true);
-        await handle(req, res, parsedUrl);
-      } catch (err) {
-        console.error("Error occurred handling", req.url, err);
-        res.statusCode = 500;
-        res.end("internal server error");
-      }
-    });
-
-    // Initialize WebSocket server
-    createWebSocketServer(server);
-
+  void app.prepare().then(() => {
     server.listen(port, () => {
       console.log(
         `> Server listening at http://${hostname}:${port} as ${
@@ -59,4 +44,7 @@ if (!dev) {
       );
     });
   });
-} 
+}
+
+// Export the server instance for production (Vercel)
+export default server; 

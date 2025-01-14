@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "dist",
+    "target": "ES2017",
+    "lib": ["ES2017"],
+    "isolatedModules": false,
+    "noEmit": false,
+    "esModuleInterop": true,
+    "moduleResolution": "Node"
+  },
+  "include": ["server.ts", "src/server/websocket.ts"]
+} 

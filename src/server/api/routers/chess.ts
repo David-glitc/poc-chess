@@ -9,19 +9,27 @@ export const chessRouter = createTRPCRouter({
   createGame: publicProcedure
     .input(z.object({ roomId: z.string() }))
     .mutation(({ input }) => {
-      const initialPosition = getInitialPosition();
-      games.set(input.roomId, initialPosition);
-      return { gameState: initialPosition };
+      try {
+        const initialPosition = getInitialPosition();
+        games.set(input.roomId, initialPosition);
+        return { gameState: initialPosition };
+      } catch (error) {
+        throw new Error("Failed to create game");
+      }
     }),
 
   getGameState: publicProcedure
     .input(z.object({ roomId: z.string() }))
     .query(({ input }) => {
-      const gameState = games.get(input.roomId);
-      if (!gameState) {
-        throw new Error("Game not found");
+      try {
+        const gameState = games.get(input.roomId);
+        if (!gameState) {
+          throw new Error("Game not found");
+        }
+        return { gameState };
+      } catch (error) {
+        throw new Error("Failed to get game state");
       }
-      return { gameState };
     }),
 
   move: publicProcedure
@@ -31,17 +39,21 @@ export const chessRouter = createTRPCRouter({
       to: z.string()
     }))
     .mutation(({ input }) => {
-      const currentState = games.get(input.roomId);
-      if (!currentState) {
-        throw new Error("Game not found");
-      }
+      try {
+        const currentState = games.get(input.roomId);
+        if (!currentState) {
+          throw new Error("Game not found");
+        }
 
-      const newState = isMoveValid(currentState, { from: input.from, to: input.to });
-      if (!newState) {
-        throw new Error("Invalid move");
-      }
+        const newState = isMoveValid(currentState, { from: input.from, to: input.to });
+        if (!newState) {
+          throw new Error("Invalid move");
+        }
 
-      games.set(input.roomId, newState);
-      return { gameState: newState };
+        games.set(input.roomId, newState);
+        return { gameState: newState };
+      } catch (error) {
+        throw new Error("Failed to make move");
+      }
     }),
 }); 

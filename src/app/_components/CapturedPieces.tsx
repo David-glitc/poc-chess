@@ -1,41 +1,42 @@
 "use client";
 
-import { type Piece } from "chess.js";
+import { type Piece, type Color, type PieceSymbol } from "chess.js";
 import { motion } from "framer-motion";
-import { getPieceImage } from "~/utils/chess";
-import { getGameFromFen } from "~/utils/chess";
+import { getPieceImage, getGameFromFen } from "../../utils/chess";
 
 interface CapturedPiecesProps {
   gameState: string;
-  color: "white" | "black";
+  color: Color;
 }
+
+type PieceKey = `${Color}${PieceSymbol}`;
 
 export function CapturedPieces({ gameState, color }: CapturedPiecesProps) {
   const { board } = getGameFromFen(gameState);
 
   // Count pieces on the board
-  const piecesOnBoard = board.flat().filter((piece): piece is Piece => piece !== null).reduce((acc, piece) => {
-    const key = piece.color + piece.type;
+  const piecesOnBoard = board.flat().filter((piece): piece is Piece => piece !== null).reduce<Record<PieceKey, number>>((acc, piece) => {
+    const key: PieceKey = `${piece.color}${piece.type}`;
     acc[key] = (acc[key] || 0) + 1;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<PieceKey, number>);
 
   // Initial piece counts
-  const initialPieces = {
+  const initialPieces: Record<PieceKey, number> = {
     [`${color}p`]: 8, // pawns
     [`${color}n`]: 2, // knights
     [`${color}b`]: 2, // bishops
     [`${color}r`]: 2, // rooks
     [`${color}q`]: 1, // queen
-  };
+  } as Record<PieceKey, number>;
 
   // Calculate captured pieces
-  const capturedPieces: Array<{ type: string; count: number }> = [];
+  const capturedPieces: Array<{ type: PieceSymbol; count: number }> = [];
   Object.entries(initialPieces).forEach(([key, initialCount]) => {
-    const currentCount = piecesOnBoard[key] || 0;
+    const currentCount = piecesOnBoard[key as PieceKey] || 0;
     if (currentCount < initialCount) {
       capturedPieces.push({
-        type: key[1],
+        type: key.charAt(1) as PieceSymbol,
         count: initialCount - currentCount,
       });
     }

@@ -7,30 +7,30 @@ const createWebSocketServer = (httpServer: HTTPServer) => {
       origin: "*",
       methods: ["GET", "POST"]
     },
-    pingInterval: 2000, // Send ping every 2 seconds
-    pingTimeout: 5000   // Consider connection dead after 5 seconds of no response
+    pingInterval: 2000,
+    pingTimeout: 5000
   });
 
   io.on('connection', (socket) => {
     console.log('Player connected:', socket.id);
 
-    // Handle room joining
     socket.on('join-room', async (room: string) => {
       try {
         await socket.join(room);
         console.log(`Player ${socket.id} joined room ${room}`);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error(`Error joining room: ${errorMessage}`);
+        console.error('Error joining room:', error instanceof Error ? error.message : 'Unknown error');
       }
     });
 
-    // Handle moves
-    socket.on('move', (data: { room: string; move: string; state: string }) => {
-      void io.to(data.room).emit('move', data);
+    socket.on('move', (data: { room: string; state: string }) => {
+      try {
+        socket.to(data.room).emit('move', { state: data.state });
+      } catch (error) {
+        console.error('Error broadcasting move:', error instanceof Error ? error.message : 'Unknown error');
+      }
     });
 
-    // Handle ping/pong for latency measurement
     socket.on('ping', () => {
       socket.emit('pong');
     });

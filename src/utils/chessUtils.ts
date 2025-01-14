@@ -2,9 +2,7 @@ import { Chess } from 'chess.js';
 
 export const isMoveValid = (gameState: string, move: { from: string; to: string }): string | null => {
   try {
-    const game = new Chess();
-    // Load the current game state
-    game.load(gameState);
+    const game = new Chess(gameState);
     // Try to make the move
     const result = game.move({ from: move.from, to: move.to, promotion: 'q' });
     return result ? game.fen() : null;
@@ -19,7 +17,10 @@ export const getInitialPosition = (): string => {
 };
 
 export const isGameOver = (gameState: string): boolean => {
-  const game = new Chess();
-  game.load(gameState);
-  return game.isGameOver();
+  try {
+    const game = new Chess(gameState);
+    return game.isGameOver();
+  } catch {
+    return false;
+  }
 }; 
